@@ -1,0 +1,292 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/app-layout/app-drawer/app-drawer.html">
+<link rel="import" href="../bower_components/app-layout/app-drawer-layout/app-drawer-layout.html">
+<link rel="import" href="../bower_components/app-layout/app-header/app-header.html">
+<link rel="import" href="../bower_components/app-layout/app-header-layout/app-header-layout.html">
+<link rel="import" href="../bower_components/app-layout/app-scroll-effects/app-scroll-effects.html">
+<link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html">
+<link rel="import" href="../bower_components/app-route/app-location.html">
+<link rel="import" href="../bower_components/app-route/app-route.html">
+<link rel="import" href="../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../bower_components/iron-selector/iron-selector.html">
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../bower_components/paper-item/paper-icon-item.html">
+<link rel="import" href="../bower_components/paper-drawer-panel/paper-drawer-panel.html">
+<link rel="import" href="../bower_components/paper-menu-button/paper-menu-button.html">
+<link rel="import" href="../bower_components/paper-menu/paper-menu.html">
+<link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../bower_components/paper-fab/paper-fab.html">
+<link rel="import" href="my-icons.html">
+<link rel="import" href="my-account-overlay.html">
+
+<dom-module id="my-app">
+  <template>
+    <style>
+      :host {
+        --app-primary-color: #4285f4;
+        --app-secondary-color: black;
+
+        display: block;
+      }
+
+      app-header {
+        color: #fff;
+        background-color: var(--app-primary-color);
+      }
+      app-header paper-icon-button {
+        --paper-icon-button-ink-color: white;
+
+      }
+
+      app-drawer {
+          --app-drawer-content-container: {
+            background-color: #e8e8e8;
+          }
+      }
+      paper-icon-item {
+          margin-top: 0px;
+          margin-bottom: 0px;
+          min-height: 10px;
+      }
+
+      .logo {
+          text-align: center;
+      }
+
+      .drawer-list {
+        margin: 0 20px;
+      }
+
+      .drawer-list a {
+        display: block;
+        padding: 0 16px;
+        text-decoration: none;
+        color: var(--app-secondary-color);
+        line-height: 40px;
+      }
+
+      .drawer-list a.iron-selected {
+        color: black;
+        font-weight: bold;
+      }
+      .lowPriorityIcon{
+          color: #E0E0E0;
+      }
+      .mediumPriorityIcon {
+        color: #ffbb33;
+      }
+
+      .highPriorityIcon {
+        color: #ff4444;
+      }
+
+
+    </style>
+
+    <app-location route="{{route}}"></app-location>
+    <app-route
+        route="{{route}}"
+        pattern="/:page"
+        data="{{routeData}}"
+        tail="{{subroute}}"></app-route>
+
+      <!-- Main content -->
+      <app-header-layout has-scrolling-region fullbleed>
+
+        <app-header condenses fixed effects="waterfall">
+          <app-toolbar>
+            <paper-icon-button icon="my-icons:arrow-back" on-click="_navigateBack" drawer-toggle></paper-icon-button>
+            <paper-icon-button icon="my-icons:menu" on-click="_toggleDrawer" drawer-toggle></paper-icon-button>
+            <a href="/create"><paper-fab mini noink icon="my-icons:add" title="Create a new issue"></paper-fab></a>
+
+            <div class="logo" main-title>Issue Tracker</div>
+             <paper-icon-button title="Log out" icon="my-icons:exit" on-tap="_logoutUser"></paper-icon-button>
+          </app-toolbar>
+        </app-header>
+
+        <app-drawer-layout>
+          <!-- Drawer content -->
+          <app-drawer opened="{{drawerOpened}}" id="drawer">
+            <app-toolbar>Menu</app-toolbar>
+            <paper-input id="searchinput" label="search">
+              <div prefix> <paper-icon-button icon="search"></paper-icon-button></div>
+            </paper-input>
+            <br>
+            <label>Departments</label>
+            <paper-icon-item id="alldepartmentslabel" active>
+                <iron-icon class="grayIcon" icon="label" item-icon></iron-icon>
+                <span>All</span>
+            </paper-icon-item>
+            <paper-icon-item id="productionlabel">
+                <iron-icon class="grayIcon" icon="label" item-icon></iron-icon>
+                <span>Production</span>
+            </paper-icon-item>
+            <paper-icon-item id="financelabel">
+                <iron-icon class="grayIcon" icon="label" item-icon></iron-icon>
+                <span>Finance</span>
+            </paper-icon-item>
+            <paper-icon-item id="saleslabel">
+                <iron-icon class="grayIcon" icon="label" item-icon></iron-icon>
+                <span>Sales</span>
+            </paper-icon-item>
+            <paper-icon-item id="operationslabel">
+                <iron-icon class="grayIcon" icon="label" item-icon></iron-icon>
+                <span>Operations</span>
+            </paper-icon-item>
+            <paper-icon-item id="successlabel">
+                <iron-icon class="grayIcon" icon="label" item-icon></iron-icon>
+                <span>Success</span>
+            </paper-icon-item>
+            <br>
+            <label>Priority Levels</label>
+            <paper-icon-item id="lowprioritylabel" active>
+                <iron-icon class="lowPriorityIcon" icon="label" item-icon></iron-icon>
+                <span>Low</span>
+            </paper-icon-item>
+            <paper-icon-item id="mediumprioritylabel">
+                <iron-icon class="mediumPriorityIcon" icon="label" item-icon></iron-icon>
+                <span>Medium</span>
+            </paper-icon-item>
+            <paper-icon-item id="highprioritylabel">
+                <iron-icon class="highPriorityIcon" icon="label" item-icon></iron-icon>
+                <span>High</span>
+            </paper-icon-item>
+
+
+          </app-drawer>
+          <iron-pages
+              selected="[[page]]"
+              attr-for-selected="name"
+              fallback-selection="view404"
+              role="main">
+            <my-home name="home"></my-home>
+            <my-create name="create"></my-create>
+            <my-admin name="admin"></my-admin>
+            <my-edit name="edit"></my-edit>
+            <my-view404 name="view404"></my-view404>
+          </iron-pages>
+
+         </app-drawer-layout>
+      </app-header-layout>
+      <iron-request id="xhr"></iron-request>
+  </template>
+
+  <script>
+    Polymer({
+      is: 'my-app',
+
+      properties: {
+        page: {
+          type: String,
+          reflectToAttribute: true,
+          observer: '_pageChanged',
+        },
+        user: {
+          type: Object,
+          notify: true
+        }
+      },
+
+      observers: [
+        '_routePageChanged(routeData.page)',
+      ],
+
+      ready: function () {
+
+        this.drawerOpened = false;
+        this._getLoggedInUser();
+        window.setTimeout(this._checkUser.bind(this), 30);
+      },
+      _checkUser: function () {
+          if (this.user.is_admin == false) {
+              this.page = "home";
+             window.localStorage.setItem("isAdmin", "false");
+         } else {
+            window.localStorage.setItem("isAdmin", "true");
+         }
+      },
+      _logoutUser: function () {
+          this._getResource({
+            url: '/api/logout',
+            onLoad: function(e) {
+                        window.location = '/';
+                    }.bind(this),
+            onError: function(e) {
+              //
+            }
+        }, 1);
+      },
+      _getLoggedInUser: function() {
+            this._getResource({
+              url: '/api/currentuser',
+              onLoad: function(e) {
+                var user = JSON.parse(e.target.responseText)["user"];
+                this.set('user', user);
+            }.bind(this),
+              onError: function(e) {
+                //
+              }
+          }, 1);
+      },
+
+      _getResource: function(rq, attempts) {
+        var xhr = new XMLHttpRequest();
+        xhr.addEventListener('load', rq.onLoad.bind(this));
+        xhr.addEventListener('error', function(e) {
+          // Flaky connections might fail fetching resources
+          if (attempts > 1) {
+            this.debounce('_getResource', this._getResource.bind(this, rq, attempts - 1), 200);
+          } else {
+            rq.onError.call(this, e);
+          }
+        }.bind(this));
+
+        xhr.open('GET', rq.url);
+        xhr.send();
+    },
+
+      _routePageChanged: function(page) {
+        var isAdmin = window.localStorage.getItem("isAdmin");
+        var next_page = page || 'admin';
+        if (next_page == 'admin' && isAdmin == "false") {
+            next_page = "home"
+        }
+        this.page = next_page;
+
+        if (!this.$.drawer.persistent) {
+          this.$.drawer.close();
+        }
+      },
+
+      _pageChanged: function(page) {
+        // Load page import on demand. Show 404 page if fails
+        var resolvedPageUrl = this.resolveUrl('my-' + page + '.html');
+        this.importHref(resolvedPageUrl, null, this._showPage404, true);
+      },
+
+      _showPage404: function() {
+        this.page = 'view404';
+      },
+
+      _toggleDrawer: function () {
+          this.drawerOpened = !this.drawerOpened;
+      },
+      _navigateBack: function () {
+          window.history.back();
+      }
+    });
+  </script>
+</dom-module>

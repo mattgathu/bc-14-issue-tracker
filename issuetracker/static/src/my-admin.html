@@ -1,0 +1,210 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/paper-card/paper-card.html">
+<link rel="import" href="../bower_components/paper-fab/paper-fab.html">
+<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../bower_components/paper-toolbar/paper-toolbar.html">
+<link rel="import" href="../bower_components/paper-badge/paper-badge.html">
+<link rel="import" href="../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="../bower_components/polymer-sortablejs/polymer-sortablejs.html"/>
+<link rel="import" href="shared-styles.html">
+<link rel="import" href="my-data.html">
+<link rel="import" href="my-issue-item-small.html">
+<link rel="import" href="my-icons.html">
+
+<dom-module id="my-admin">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: block;
+
+        padding: 10px;
+      }
+      paper-card {
+           width: 400px;
+      }
+      .flex-self-align {
+        @apply(--layout-horizontal);
+        @apply(--layout-justified);
+        height: 600px;
+      }
+      .flex-self-align div {
+          @apply(--layout-flex);
+          @apply(--layout-self-stretch);
+          background-color: #E0E0E0;
+          margin-left: 10px;
+          margin-top: 10px;
+      }
+      .todo > paper-card {
+          background-color: cyan;
+      }
+
+    </style>
+      <my-data
+          data="{{data}}"
+          failure="{{failure}}">
+      </my-data>
+    <div class="container flex-self-align">
+      <div class="todo">
+          <paper-toolbar>
+              <span id="todocol"class="">To Do</span>
+          </paper-toolbar>
+          <sortable-js group="todo">
+              <template is="dom-repeat" items="[[issues]]" as="issue" filter="_isToDo" initial-count="4">
+                <my-issue-item-small item="[[issue]]"></my-issue-item-small>
+              </template>
+          </sortable-js>
+      </div>
+      <div class="inprogress">
+          <paper-toolbar>
+              <span class="title">In Progress</span>
+          </paper-toolbar>
+          <sortable-js group="todo">
+              <template is="dom-repeat" items="[[issues]]" as="issue" filter="_isInProgess" observe="in_progress in_progress" initial-count="4">
+                <my-issue-item-small item="[[issue]]"></my-issue-item-small>
+              </template>
+          </sortable-js>
+      </div>
+      <div class="done">
+          <paper-toolbar>
+              <span class="title">Done</span>
+          </paper-toolbar>
+          <sortable-js group="todo">
+              <template is="dom-repeat" items="[[issues]]" as="issue" filter="_isDone" initial-count="4">
+                <my-issue-item-small item="[[issue]]"></my-issue-item-small>
+              </template>
+          </sortable-js>
+      </div>
+    </div>
+
+
+  </template>
+
+  <script>
+    Polymer({
+      is: 'my-admin',
+      properties: {
+          searchString: String,
+          failure: {
+            type: Boolean,
+            notify: true,
+            readOnly: true
+        }
+
+      },
+      ready: function () {
+          this.issues = [];
+          this._fetchIssues(1);
+          this.listen(this.domHost.$$('#searchinput'), 'keyup', '_onKeyUp');
+          this.listen(this.domHost.$$('#alldepartmentslabel'), 'tap', '_onTapAllDepartmentsLabel');
+          this.listen(this.domHost.$$('#productionlabel'), 'tap', '_onTapProductionLabel');
+          this.listen(this.domHost.$$('#saleslabel'), 'tap', '_onTapSalesLabel');
+          this.listen(this.domHost.$$('#successlabel'), 'tap', '_onTapSuccessLabel');
+          this.listen(this.domHost.$$('#financelabel'), 'tap', '_onTapFinanceLabel');
+      },
+
+      _isInProgess: function (issue) {
+          return issue.in_progress == true;
+      },
+
+      _isDone: function (issue) {
+          return issue.status == "closed";
+      },
+
+      _isToDo: function (issue) {
+          return issue.status == "open" && issue.in_progress == false;
+      },
+
+      _getListItems: function(items) {
+        // Return placeholder items when the items haven't loaded yet.
+        return items || [{},{},{},{},{},{},{},{},{},{}];
+    },
+    _fetchIssues: function(attempts) {
+      this._setFailure(false);
+      this._getResource({
+        url: '/api/issues',
+        onLoad: function(e) {
+          var issues = JSON.parse(e.target.responseText)["issues"];
+          for (var i = 0; i < issues.length; i++) {
+              this.push('issues', issues[i]);
+          }
+
+        },
+        onError: function(e) {
+          this._setFailure(true);
+        }
+      }, attempts);
+    },
+
+    _getResource: function(rq, attempts) {
+      var xhr = new XMLHttpRequest();
+      xhr.addEventListener('load', rq.onLoad.bind(this));
+      xhr.addEventListener('error', function(e) {
+        // Flaky connections might fail fetching resources
+        if (attempts > 1) {
+          this.debounce('_getResource', this._getResource.bind(this, rq, attempts - 1), 200);
+        } else {
+          rq.onError.call(this, e);
+        }
+      }.bind(this));
+
+      xhr.open('GET', rq.url);
+      xhr.send();
+  },
+
+  _computeFilter: function (query) {
+    if (!query) {
+      return null;
+    } else {
+      query = query.toLowerCase();
+      return function (issue) {
+          var search_text = issue.summary + issue.description + issue.department;
+        return search_text.toLowerCase().indexOf(query) >= 0;
+      };
+  }},
+  _onKeyUp: function (e) {
+      this.set("searchString", e.target.value);
+  },
+  _onTapProductionLabel: function (e) {
+      this.set("searchString", "production");
+  },
+  _onTapAllDepartmentsLabel: function () {
+      this.set("searchString", null);
+  },
+  _onTapSuccessLabel: function () {
+      this.set("searchString", "success");
+  },
+  _onTapFinanceLabel: function () {
+      this.set("searchString", "finance");
+  },
+  _onTapSalesLabel: function () {
+      this.set("searchString", "sales");
+  },
+
+   _allowDrop: function (ev) {
+    ev.preventDefault();
+    },
+
+    _drag: function (ev) {
+        ev.dataTransfer.setData("text", ev.target.id);
+    },
+
+    _drop: function (ev) {
+        ev.preventDefault();
+        var data = ev.dataTransfer.getData("text");
+        ev.target.appendChild(document.getElementById(data));
+    }
+
+  });
+  </script>
+</dom-module>

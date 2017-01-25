@@ -1,0 +1,120 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/paper-card/paper-card.html">
+<link rel="import" href="../bower_components/paper-toast/paper-toast.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-input/paper-textarea.html">
+<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../bower_components/iron-form/iron-form.html">
+<link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
+<link rel="import" href="my-icons.html">
+
+<dom-module id="my-issue-item">
+
+    <template>
+        <style>
+        .lowpriority {
+          background-color: #9E9E9E;
+        }
+
+        .mediumpriority {
+          background-color: #ffbb33;
+        }
+
+        .highpriority {
+          background-color: #ff4444;
+        }
+
+        .icon {
+            color: #FF3F80;
+        }
+        .commentButton {
+            background-color: white;
+        }
+        </style>
+        <paper-toast id="toast" text="Comment Added!"></paper-toast>
+        <paper-card id="papercard" class$="{{_getItemClass(item)}}" heading="[[item.summary]]">
+          <div class="card-content">[[item.description]] <p><paper-icon-button icon="my-icons:label"></paper-icon-button>[[item.department]]</p></div>
+          <div class="card-actions">
+            <paper-icon-button
+                title="comment"
+                on-tap="_toggleComment"
+                icon="my-icons:comment"></paper-icon-button>
+            <paper-icon-button on-tap="_storeItemLocally" title="edit" icon="my-icons:create"></paper-icon-button>
+            <a href="/edit" id="editviewlink"></a>
+            <iron-collapse id="make-comment" style="width:100%;">
+                <form is="iron-form" method="post" action="/api/comments" id="commentform">
+                    <input type="hidden" name="issue_id" value="[[item.id]]"></input>
+                    <paper-textarea name="text" id="commentInput" on-keyup="_toggleSendCommentButton" label="write comment"></paper-textarea>
+                    <paper-button id="sendCommentButton" class="commentButton" on-tap="_submitComment" raised disabled>Comment</paper-button>
+                </form>
+            </iron-collapse>
+          </div>
+        </paper-card>
+
+    </template>
+    <script>
+        Polymer({
+            is: 'my-issue-item',
+            properties: {
+                item: Object
+            },
+            ready: function () {
+                var form = this.$.papercard
+                    .querySelector('#make-comment')
+                    .querySelector('#commentform');
+                form.addEventListener('iron-form-error', this._onCommentSentError.bind(this));
+                form.addEventListener('iron-form-response', this._onCommentSent.bind(this));
+            },
+            _getItemClass: function (item) {
+                if (item.priority == "high") {
+                    return "highpriority";
+                } else if (item.priority == "medium") {
+                    return "mediumpriority";
+                } else {
+                    return "lowpriority"
+                }
+            },
+            _storeItemLocally: function () {
+                window.localStorage.setItem("currentItem", JSON.stringify(this.item));
+                this.$.papercard.querySelector('#editviewlink').click();
+            },
+            _toggleSendCommentButton: function () {
+                var commentMsg = this.$.papercard
+                    .querySelector('#make-comment')
+                    .querySelector('#commentInput').value;
+
+                if (commentMsg != "") {
+                    this.$.papercard
+                        .querySelector('#make-comment')
+                        .querySelector('#sendCommentButton').disabled = false;
+                } else {
+                    this.$.papercard
+                        .querySelector('#make-comment')
+                        .querySelector('#sendCommentButton').disabled = true;
+                }
+
+            },
+            _toggleComment: function (event) {
+                var moreInfo = this.$.papercard.querySelector('#make-comment');
+                moreInfo.toggle();
+            },
+            _submitComment: function (event) {
+                var form = this.$.papercard
+                    .querySelector('#make-comment')
+                    .querySelector('#commentform');
+                form.submit();
+            },
+            _onCommentSent: function () {
+                this.$.toast.open();
+                this.$.papercard
+                    .querySelector('#make-comment')
+                    .querySelector('#commentform').reset();
+                this.$.papercard.querySelector('#make-comment').toggle();
+            },
+            _onCommentSentError: function () {
+                this.$.toast.show({text:"Error Occurred", duration: 3000});
+            }
+        });
+    </script>
+</dom-module>

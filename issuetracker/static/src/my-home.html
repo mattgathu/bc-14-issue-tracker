@@ -1,0 +1,160 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/app-layout/app-grid/app-grid-style.html">
+<link rel="import" href="../bower_components/paper-card/paper-card.html">
+<link rel="import" href="../bower_components/paper-fab/paper-fab.html">
+<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="shared-styles.html">
+<link rel="import" href="my-data.html">
+<link rel="import" href="my-issue-item.html">
+<link rel="import" href="my-icons.html">
+
+<dom-module id="my-home">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: block;
+
+        padding: 10px;
+      }
+    </style>
+
+    <style include="app-grid-style">
+        :host {
+            display: block;
+            --app-grid-columns: 3;
+            --app-grid-gutter: 10px;
+            --app-grid-expandible-item-columns: 2;
+            --app-grid-item-height: auto;
+        }
+
+        ul {
+          padding: 0;
+          list-style: none;
+        }
+
+        .item {
+          background-color: #E0E0E0;
+        }
+
+        .icon {
+            color: #FF3F80;
+        }
+        .app-grid {
+            margin-top: 0px;
+        }
+      </style>
+      <my-data
+          data="{{data}}"
+          failure="{{failure}}">
+      </my-data>
+
+     <ul class="app-grid">
+        <template is="dom-repeat" items="[[issues]]" as="issue" filter="{{_computeFilter(searchString)}}" initial-count="4">
+          <my-issue-item item="[[issue]]"></my-issue-item>
+
+        </template>
+     </ul>
+  </template>
+
+  <script>
+    Polymer({
+      is: 'my-home',
+      properties: {
+          searchString: String,
+          failure: {
+            type: Boolean,
+            notify: true,
+            readOnly: true
+        }
+
+      },
+      ready: function () {
+          this.issues = [];
+          this._fetchIssues(1);
+          this.listen(this.domHost.$$('#searchinput'), 'keyup', '_onKeyUp');
+          this.listen(this.domHost.$$('#alldepartmentslabel'), 'tap', '_onTapAllDepartmentsLabel');
+          this.listen(this.domHost.$$('#productionlabel'), 'tap', '_onTapProductionLabel');
+          this.listen(this.domHost.$$('#saleslabel'), 'tap', '_onTapSalesLabel');
+          this.listen(this.domHost.$$('#successlabel'), 'tap', '_onTapSuccessLabel');
+          this.listen(this.domHost.$$('#financelabel'), 'tap', '_onTapFinanceLabel');
+      },
+      _getListItems: function(items) {
+        // Return placeholder items when the items haven't loaded yet.
+        return items || [{},{},{},{},{},{},{},{},{},{}];
+    },
+    _fetchIssues: function(attempts) {
+      this._setFailure(false);
+      this._getResource({
+        url: '/api/issues',
+        onLoad: function(e) {
+          var issues = JSON.parse(e.target.responseText)["issues"];
+          for (var i = 0; i < issues.length; i++) {
+              this.push('issues', issues[i]);
+          }
+          //this.set('issues', JSON.parse(e.target.responseText)["issues"]);
+        },
+        onError: function(e) {
+          this._setFailure(true);
+        }
+      }, attempts);
+    },
+
+    _getResource: function(rq, attempts) {
+      var xhr = new XMLHttpRequest();
+      xhr.addEventListener('load', rq.onLoad.bind(this));
+      xhr.addEventListener('error', function(e) {
+        // Flaky connections might fail fetching resources
+        if (attempts > 1) {
+          this.debounce('_getResource', this._getResource.bind(this, rq, attempts - 1), 200);
+        } else {
+          rq.onError.call(this, e);
+        }
+      }.bind(this));
+
+      xhr.open('GET', rq.url);
+      xhr.send();
+  },
+
+  _computeFilter: function (query) {
+    if (!query) {
+      return null;
+    } else {
+      query = query.toLowerCase();
+      return function (issue) {
+          var search_text = issue.summary + issue.description + issue.department;
+        return search_text.toLowerCase().indexOf(query) >= 0;
+      };
+  }},
+  _onKeyUp: function (e) {
+      this.set("searchString", e.target.value);
+  },
+  _onTapProductionLabel: function (e) {
+      this.set("searchString", "production");
+  },
+  _onTapAllDepartmentsLabel: function () {
+      this.set("searchString", null);
+  },
+  _onTapSuccessLabel: function () {
+      this.set("searchString", "success");
+  },
+  _onTapFinanceLabel: function () {
+      this.set("searchString", "finance");
+  },
+  _onTapSalesLabel: function () {
+      this.set("searchString", "sales");
+  }
+
+  });
+  </script>
+</dom-module>
