@@ -11,3 +11,5 @@
 venv
 data
 __pycache__
+*.env
+*.json
