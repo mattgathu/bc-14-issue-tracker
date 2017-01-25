@@ -1,0 +1,15 @@
+.idea
+.ropeproject
+*.txt
+*.pyc
+*.db
+*.xml
+*.swp
+*.pdf
+*.log
+*.cpy
+venv
+data
+__pycache__
+*.env
+*.json

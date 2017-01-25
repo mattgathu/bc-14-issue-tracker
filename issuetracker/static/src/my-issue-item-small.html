@@ -1,0 +1,185 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/paper-card/paper-card.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-toast/paper-toast.html">
+<link rel="import" href="../bower_components/paper-input/paper-textarea.html">
+<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
+<link rel="import" href="../bower_components/iron-form/iron-form.html">
+<link rel="import" href="my-icons.html">
+
+<dom-module id="my-issue-item-small">
+
+    <template>
+        <style>
+        paper-card {
+            width: 100%;
+            margin-top: 10px;
+        }
+        .lowpriority {
+          background-color: #9E9E9E;
+        }
+
+        .mediumpriority {
+          background-color: #ffbb33;
+        }
+
+        .highpriority {
+          background-color: #ff4444;
+        }
+
+        .icon {
+            color: #FF3F80;
+        }
+        .card-content {
+            margin-top: 0px;
+            padding-top: 0px;
+        }
+        .commentButton {
+            background-color: white;
+        }
+        </style>
+        <paper-card id="papercard" class$="{{_getItemClass(item)}}" heading="[[item.summary]]">
+          <div class="card-actions">
+              <paper-icon-button
+                title="comment"
+                on-tap="_toggleComment"
+                icon="my-icons:comment">
+              </paper-icon-button>
+              <paper-icon-button on-tap="_deleteItem" title="delete" icon="my-icons:delete"></paper-icon-button>
+              <paper-icon-button on-tap="_storeItemLocally" title="edit" icon="my-icons:create"></paper-icon-button>
+              <a href="/edit" id="editviewlink"></a>
+              <paper-icon-button
+                icon="my-icons:keyboard-arrow-up"
+                title="more info"
+                on-tap="_toggleArrow"
+                style="float:right;">
+             </paper-icon-button>
+              <iron-collapse id="more-info" style="width:100%;">
+                  <p><paper-icon-button icon="my-icons:label"></paper-icon-button>[[item.department]]</p>
+                  [[item.description]]
+              </iron-collapse>
+              <iron-collapse id="make-comment" style="width:100%;">
+                  <form is="iron-form" method="post" action="/api/comments" id="commentform">
+                      <input type="hidden" name="issue_id" value="[[item.id]]"></input>
+                      <paper-textarea name="text" id="commentInput" on-keyup="_toggleSendCommentButton" label="write comment"></paper-textarea>
+                      <paper-button id="sendCommentButton" class="commentButton" on-tap="_submitComment" raised disabled>Comment</paper-button>
+                  </form>
+              </iron-collapse>
+
+              <paper-toast id="toast" text="Issue Deleted!"></paper-toast>
+          </div>
+        </paper-card>
+
+
+    </template>
+    <script>
+        Polymer({
+            is: 'my-issue-item-small',
+            properties: {
+                item: Object
+            },
+            ready: function () {
+                var form = this.$.papercard
+                    .querySelector('#make-comment')
+                    .querySelector('#commentform');
+                form.addEventListener('iron-form-error', this._onCommentSentError.bind(this));
+                form.addEventListener('iron-form-response', this._onCommentSent.bind(this));
+            },
+
+            _toggleArrow: function (event) {
+                var moreInfo = this.$.papercard.querySelector('#more-info');
+                var iconButton = Polymer.dom(event).localTarget;
+                iconButton.icon = moreInfo.opened ? 'my-icons:keyboard-arrow-up'
+                                                  : 'my-icons:keyboard-arrow-down';
+                moreInfo.toggle();
+            },
+            _toggleComment: function (event) {
+                var moreInfo = this.$.papercard.querySelector('#make-comment');
+                moreInfo.toggle();
+            },
+            _getItemClass: function (item) {
+                if (item.priority == "high") {
+                    return "highpriority";
+                } else if (item.priority == "medium") {
+                    return "mediumpriority";
+                } else {
+                    return "lowpriority"
+                }
+            },
+            _storeItemLocally: function () {
+                window.localStorage.setItem("currentItem", JSON.stringify(this.item));
+                this.$.papercard.querySelector('#editviewlink').click();
+            },
+            _deleteItem: function () {
+                this._getResource({
+                      url: '/api/issues/'+this.item.id,
+                      onLoad: function(e) {
+                        var result = JSON.parse(e.target.responseText)["issues"];
+                        this.$.toast.open();
+                        this.remove();
+                    }.bind(this),
+                      onError: function(e) {
+                        this._setFailure(true);
+                      }
+                  }, 1, 'DELETE');
+                this.$.toast.open();
+            },
+            _getResource: function(rq, attempts, method) {
+                  var xhr = new XMLHttpRequest();
+                  xhr.addEventListener('load', rq.onLoad.bind(this));
+                  xhr.addEventListener('error', function(e) {
+                    // Flaky connections might fail fetching resources
+                    if (attempts > 1) {
+                      this.debounce('_getResource', this._getResource.bind(this, rq, attempts - 1), 200);
+                    } else {
+                      rq.onError.call(this, e);
+                    }
+                  }.bind(this));
+
+                  xhr.open(method, rq.url);
+                  xhr.send();
+              },
+              _toggleSendCommentButton: function () {
+                  var commentMsg = this.$.papercard
+                      .querySelector('#make-comment')
+                      .querySelector('#commentInput').value;
+
+                  if (commentMsg != "") {
+                      this.$.papercard
+                          .querySelector('#make-comment')
+                          .querySelector('#sendCommentButton').disabled = false;
+                  } else {
+                      this.$.papercard
+                          .querySelector('#make-comment')
+                          .querySelector('#sendCommentButton').disabled = true;
+                  }
+
+              },
+              _toggleComment: function (event) {
+                  var moreInfo = this.$.papercard.querySelector('#make-comment');
+                  moreInfo.toggle();
+              },
+              _submitComment: function (event) {
+                  var form = this.$.papercard
+                      .querySelector('#make-comment')
+                      .querySelector('#commentform');
+                  form.submit();
+              },
+              _onCommentSent: function () {
+                  this.$.toast.show({text:"Comment Added", duration: 3000});
+                  this.$.papercard
+                      .querySelector('#make-comment')
+                      .querySelector('#commentform').reset();
+                  this.$.papercard.querySelector('#make-comment').toggle();
+              },
+              _onCommentSentError: function () {
+                  this.$.toast.show({text:"Error Occurred", duration: 3000});
+              },
+              storeItemLocally: function () {
+                  window.localStorage.setItem("currentItem", JSON.stringify(this.item));
+                  this.$.papercard.querySelector('#editviewlink').click();
+              }
+        });
+    </script>
+</dom-module>

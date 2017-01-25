@@ -1,0 +1,71 @@
+
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<dom-module id="my-data">
+
+  <script>
+  (function() {
+
+    Polymer({
+
+      is: 'my-data',
+
+      properties: {
+
+        data: {
+          type: Object,
+          computed: '_computeData()',
+          notify: true
+        },
+
+        failure: {
+          type: Boolean,
+          notify: true,
+          readOnly: true
+        }
+      },
+
+      _computeData: function() {
+        this._fetchIssues(1);
+        return categoryObj;
+      },
+
+      _fetchIssues: function(attempts) {
+        this._setFailure(false);
+        // Only fetch the items of a category if it has not been previously set.
+        if (!category || category.items) {
+          return;
+        }
+        this._getResource({
+          url: '/data/issues.json',
+          onLoad: function(e) {
+            this.set('data.items', JSON.parse(e.target.responseText));
+          },
+          onError: function(e) {
+            this._setFailure(true);
+          }
+        }, attempts);
+      },
+
+      _getResource: function(rq, attempts) {
+        var xhr = new XMLHttpRequest();
+        xhr.addEventListener('load', rq.onLoad.bind(this));
+        xhr.addEventListener('error', function(e) {
+          // Flaky connections might fail fetching resources
+          if (attempts > 1) {
+            this.debounce('_getResource', this._getResource.bind(this, rq, attempts - 1), 200);
+          } else {
+            rq.onError.call(this, e);
+          }
+        }.bind(this));
+
+        xhr.open('GET', rq.url);
+        xhr.send();
+      }
+
+    });
+
+  })();
+  </script>
+
+</dom-module>

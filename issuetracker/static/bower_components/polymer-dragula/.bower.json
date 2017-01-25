@@ -1,0 +1,39 @@
+{
+  "name": "polymer-dragula",
+  "version": "0.1.1",
+  "description": "Polymer implementation of dragula drag and drop handling",
+  "main": "polymer-dragula.html",
+  "license": "Apache-2.0",
+  "authors": [
+    "Marcin Lulek"
+  ],
+  "keywords": [
+    "web-components",
+    "polymer",
+    "drag",
+    "drop",
+    "moving",
+    "dragula"
+  ],
+  "dependencies": {
+    "polymer": "Polymer/polymer#^1.4.0",
+    "dragula.js": "dragula#^3.7.2"
+  },
+  "devDependencies": {
+    "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",
+    "iron-demo-helpers": "PolymerElements/iron-demo-helpers#^1.0.0",
+    "web-component-tester": "^4.0.0",
+    "webcomponentsjs": "webcomponents/webcomponentsjs#^0.7.0"
+  },
+  "homepage": "https://github.com/ergo/polymer-dragula",
+  "_release": "0.1.1",
+  "_resolution": {
+    "type": "version",
+    "tag": "0.1.1",
+    "commit": "674ebb69c310e10e6a30d6b93f8ad2b3e9c727a7"
+  },
+  "_source": "https://github.com/ergo/polymer-dragula.git",
+  "_target": "^0.1.1",
+  "_originalSource": "ergo/polymer-dragula",
+  "_direct": true
+}
