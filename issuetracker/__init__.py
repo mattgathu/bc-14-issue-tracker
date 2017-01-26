@@ -1,6 +1,12 @@
 """
-
+File      : __init__.py
+Date      : January, 2017
+Author(s) : Matt Gathu <mattgathu@gmail.com>
+Desc      : flask app initialization module
 """
+# ============================================================================
+# necessary imports
+# ============================================================================
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_user import UserManager
