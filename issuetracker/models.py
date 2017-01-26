@@ -1,12 +1,14 @@
 """
-
+File      : models.py
+Date      : January, 2017
+Author(s) : Matt Gathu <mattgathu@gmail.com>
+Desc      : orm models module
 """
 # ============================================================================
 # necessary imports
 # ============================================================================
 from datetime import datetime
 
-from flask import jsonify
 from flask_user import UserMixin, SQLAlchemyAdapter
 
 from issuetracker import db
@@ -49,8 +51,9 @@ class User(db.Model, UserMixin):
 
         return obj
 
+
 class Issue(db.Model):
-    """
+    """Issue
 
     """
     id = db.Column(db.Integer(), primary_key=True)
@@ -92,7 +95,7 @@ class Issue(db.Model):
 
 
 class Comment(db.Model):
-    """
+    """Comment
 
     """
     id = db.Column(db.Integer(), primary_key=True)
@@ -124,7 +127,6 @@ class Comment(db.Model):
         """
         db.session.delete(self)
         db.session.commit()
-
 
 
 db_adapter = SQLAlchemyAdapter(db, User)
