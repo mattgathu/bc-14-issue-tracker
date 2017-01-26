@@ -59,7 +59,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           <paper-toolbar>
               <span id="todocol"class="">To Do</span>
           </paper-toolbar>
-          <sortable-js group="todo">
+          <sortable-js group="todo" id="todo" on-add="_onTodoColChange">
               <template is="dom-repeat" items="[[issues]]" as="issue" filter="_isToDo" initial-count="4">
                 <my-issue-item-small item="[[issue]]"></my-issue-item-small>
               </template>
@@ -69,8 +69,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           <paper-toolbar>
               <span class="title">In Progress</span>
           </paper-toolbar>
-          <sortable-js group="todo">
-              <template is="dom-repeat" items="[[issues]]" as="issue" filter="_isInProgess" observe="in_progress in_progress" initial-count="4">
+          <sortable-js group="todo" id="progress" on-add="_onProgressColChange">
+              <template  is="dom-repeat" items="[[issues]]" as="issue" filter="_isInProgess" observe="in_progress in_progress" initial-count="4">
                 <my-issue-item-small item="[[issue]]"></my-issue-item-small>
               </template>
           </sortable-js>
@@ -79,7 +79,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           <paper-toolbar>
               <span class="title">Done</span>
           </paper-toolbar>
-          <sortable-js group="todo">
+          <sortable-js group="todo" id="done" on-add="_onDoneColChange">
               <template is="dom-repeat" items="[[issues]]" as="issue" filter="_isDone" initial-count="4">
                 <my-issue-item-small item="[[issue]]"></my-issue-item-small>
               </template>
@@ -102,6 +102,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         }
 
       },
+      listeners: {
+          'updated': '_onUpdatedEvent'
+      },
       ready: function () {
           this.issues = [];
           this._fetchIssues(1);
@@ -111,18 +114,28 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           this.listen(this.domHost.$$('#saleslabel'), 'tap', '_onTapSalesLabel');
           this.listen(this.domHost.$$('#successlabel'), 'tap', '_onTapSuccessLabel');
           this.listen(this.domHost.$$('#financelabel'), 'tap', '_onTapFinanceLabel');
+          window.setInterval(this._checkIfUpdated.bind(this), 1000);
       },
 
       _isInProgess: function (issue) {
-          return issue.in_progress == true;
+          if (issue != null) {
+              return issue.in_progress == true;
+          }
+
       },
 
       _isDone: function (issue) {
-          return issue.status == "closed";
+          if (issue != null) {
+              return issue.status == "closed";
+          }
+
       },
 
       _isToDo: function (issue) {
-          return issue.status == "open" && issue.in_progress == false;
+          if (issue != null) {
+              return issue.status == "open" && issue.in_progress == false;
+          }
+
       },
 
       _getListItems: function(items) {
@@ -135,6 +148,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         url: '/api/issues',
         onLoad: function(e) {
           var issues = JSON.parse(e.target.responseText)["issues"];
+          this.set('issues', []);
           for (var i = 0; i < issues.length; i++) {
               this.push('issues', issues[i]);
           }
@@ -175,6 +189,84 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   _onKeyUp: function (e) {
       this.set("searchString", e.target.value);
   },
+  _onProgressColChange: function (e) {
+      if (e.item.item != null) {
+          var issueItem = e.item.item;
+          issueItem.in_progress = true;
+          issueItem.status = "open";
+          var req = {
+            json: JSON.stringify(issueItem),
+            url: '/api/issues/'+ issueItem.id,
+            onLoad: function(e) {
+              var response = JSON.parse(e.target.responseText);
+              this._fetchIssues(1);
+
+          }.bind(this),
+            onError: function(e) {
+              console.log(e);
+              console.log("failure occurred");
+            }
+        };
+        this._makeApiRequest(req, "PUT");
+      }
+  },
+  _onTodoColChange: function (e) {
+      if (e.item.item != null) {
+          var issueItem = e.item.item;
+          issueItem.in_progress = false;
+          issueItem.status = "open";
+          var req = {
+            json: JSON.stringify(issueItem),
+            url: '/api/issues/'+ issueItem.id,
+            onLoad: function(e) {
+              var response = JSON.parse(e.target.responseText);
+               this._fetchIssues(1);
+
+           }.bind(this),
+            onError: function(e) {
+              console.log(e);
+              console.log("failure occurred");
+            }
+        };
+        this._makeApiRequest(req, "PUT");
+      }
+  },
+  _onDoneColChange: function (e) {
+      if (e.item.item != null) {
+          var issueItem = e.item.item;
+          issueItem.in_progress = false;
+          issueItem.status = "closed";
+          var req = {
+            json: JSON.stringify(issueItem),
+            url: '/api/issues/'+ issueItem.id,
+            onLoad: function(e) {
+              var response = JSON.parse(e.target.responseText);
+              console.log(response);
+               this._fetchIssues(1);
+
+           }.bind(this),
+            onError: function(e) {
+              console.log(e);
+              console.log("failure occurred");
+            }
+        };
+        this._makeApiRequest(req, "PUT");
+      }
+  },
+
+  _makeApiRequest: function(rq, method) {
+    var xhr = new XMLHttpRequest();
+
+    xhr.addEventListener('load', rq.onLoad.bind(this));
+    xhr.addEventListener('error', function(e) {
+        rq.onError.call(this, e);
+    }.bind(this));
+
+    xhr.open(method, rq.url);
+    xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+    xhr.send(rq.json);
+},
+
   _onTapProductionLabel: function (e) {
       this.set("searchString", "production");
   },
@@ -203,6 +295,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         ev.preventDefault();
         var data = ev.dataTransfer.getData("text");
         ev.target.appendChild(document.getElementById(data));
+    },
+    _onUpdatedEvent: function () {
+        console.log("event fired");
+        this._fetchIssues(1);
+    },
+    _checkIfUpdated: function () {
+        if (window.localStorage.getItem("updated") == "true") {
+            this._fetchIssues(1);
+            window.localStorage.setItem("updated", "false");
+        }
     }
 
   });

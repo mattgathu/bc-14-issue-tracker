@@ -30,7 +30,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../bower_components/paper-item/paper-item.html">
 <link rel="import" href="../bower_components/paper-fab/paper-fab.html">
 <link rel="import" href="my-icons.html">
-<link rel="import" href="my-account-overlay.html">
 
 <dom-module id="my-app">
   <template>
@@ -193,6 +192,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           type: String,
           reflectToAttribute: true,
           observer: '_pageChanged',
+          notify: true
         },
         user: {
           type: Object,
@@ -204,6 +204,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         '_routePageChanged(routeData.page)',
       ],
 
+
       ready: function () {
 
         this.drawerOpened = false;
@@ -211,10 +212,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         window.setTimeout(this._checkUser.bind(this), 30);
       },
       _checkUser: function () {
+          console.log(this.user);
           if (this.user.is_admin == false) {
               this.page = "home";
              window.localStorage.setItem("isAdmin", "false");
          } else {
+            this.page = "admin";
             window.localStorage.setItem("isAdmin", "true");
          }
       },
@@ -235,6 +238,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               onLoad: function(e) {
                 var user = JSON.parse(e.target.responseText)["user"];
                 this.set('user', user);
+                console.log(user);
+                this._checkUser();
             }.bind(this),
               onError: function(e) {
                 //

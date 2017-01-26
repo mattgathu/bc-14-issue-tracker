@@ -116,6 +116,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       _onFormSubmitResponse: function () {
           this.$.toast.show({text: "New Issue Created!"});
           this.$.newissueform.reset();
+          window.localStorage.setItem("updated", "true");
       }
   });
   </script>

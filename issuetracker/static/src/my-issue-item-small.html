@@ -1,6 +1,7 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/paper-card/paper-card.html">
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="../bower_components/paper-toast/paper-toast.html">
 <link rel="import" href="../bower_components/paper-input/paper-textarea.html">
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
@@ -46,8 +47,9 @@
                 on-tap="_toggleComment"
                 icon="my-icons:comment">
               </paper-icon-button>
-              <paper-icon-button on-tap="_deleteItem" title="delete" icon="my-icons:delete"></paper-icon-button>
+              <paper-icon-button on-tap="_openDeleteDialog" title="delete" icon="my-icons:delete"></paper-icon-button>
               <paper-icon-button on-tap="_storeItemLocally" title="edit" icon="my-icons:create"></paper-icon-button>
+              <paper-icon-button on-tap="_assignIssue" title="assign" icon="my-icons:assignment-ind"></paper-icon-button>
               <a href="/edit" id="editviewlink"></a>
               <paper-icon-button
                 icon="my-icons:keyboard-arrow-up"
@@ -69,6 +71,13 @@
 
               <paper-toast id="toast" text="Issue Deleted!"></paper-toast>
           </div>
+          <paper-dialog id="deleteconfirmation">
+              <h2>Confirm Delete</h2>
+              <div class="buttons">
+                <paper-button dialog-dismiss>Cancel</paper-button>
+                <paper-button dialog-confirm autofocus on-tap="_deleteItem">Delete</paper-button>
+              </div>
+            </paper-dialog>
         </paper-card>
 
 
@@ -107,9 +116,15 @@
                     return "lowpriority"
                 }
             },
+            _assignIssue: function () {
+                console.log("issue assignment");
+            },
             _storeItemLocally: function () {
                 window.localStorage.setItem("currentItem", JSON.stringify(this.item));
                 this.$.papercard.querySelector('#editviewlink').click();
+            },
+            _openDeleteDialog: function () {
+                this.$.papercard.querySelector('#deleteconfirmation').open();
             },
             _deleteItem: function () {
                 this._getResource({

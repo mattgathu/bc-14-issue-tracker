@@ -88,6 +88,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           this.listen(this.domHost.$$('#saleslabel'), 'tap', '_onTapSalesLabel');
           this.listen(this.domHost.$$('#successlabel'), 'tap', '_onTapSuccessLabel');
           this.listen(this.domHost.$$('#financelabel'), 'tap', '_onTapFinanceLabel');
+          window.setInterval(this._checkIfUpdated.bind(this), 1000);
       },
       _getListItems: function(items) {
         // Return placeholder items when the items haven't loaded yet.
@@ -99,6 +100,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         url: '/api/issues',
         onLoad: function(e) {
           var issues = JSON.parse(e.target.responseText)["issues"];
+          this.set('issues', []);
           for (var i = 0; i < issues.length; i++) {
               this.push('issues', issues[i]);
           }
@@ -153,6 +155,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   },
   _onTapSalesLabel: function () {
       this.set("searchString", "sales");
+  },
+  _checkIfUpdated: function () {
+      if (window.localStorage.getItem("updated") == "true") {
+          this._fetchIssues(1);
+          window.localStorage.setItem("updated", "false");
+      }
   }
 
   });
