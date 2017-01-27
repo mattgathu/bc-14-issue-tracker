@@ -1,5 +1,7 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/paper-item/paper-icon-item.html">
 <link rel="import" href="../bower_components/paper-card/paper-card.html">
+<link rel="import" href="../bower_components/paper-listbox/paper-listbox.html">
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="../bower_components/paper-toast/paper-toast.html">
@@ -7,12 +9,17 @@
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
 <link rel="import" href="../bower_components/iron-form/iron-form.html">
+<link rel="import" href="../bower_components/iron-icon/iron-icon.html">
 <link rel="import" href="my-icons.html">
 
 <dom-module id="my-issue-item-small">
 
     <template>
+
         <style>
+        paper-listbox {
+            background-color: inherit;
+        }
         paper-card {
             width: 100%;
             margin-top: 10px;
@@ -72,6 +79,16 @@
                       <paper-button id="sendCommentButton" class="commentButton" on-tap="_submitComment" raised disabled>Comment</paper-button>
                   </form>
               </iron-collapse>
+              <iron-collapse id="assign-users" style="width:100%;">
+                  <paper-listbox>
+                      <template is="dom-repeat" items="[[users]]" as="user">
+                          <paper-icon-item>
+                              <iron-icon icon="my-icons:face" item-icon></iron-icon>
+                              [[user.username]]
+                        </paper-icon-item>
+                      </template>
+                  </paper-listbox>
+             </iron-collapse>
 
               <paper-toast id="toast" text="Issue Deleted!"></paper-toast>
           </div>
@@ -90,14 +107,23 @@
         Polymer({
             is: 'my-issue-item-small',
             properties: {
-                item: Object
+                item: {
+                    type: Object,
+                    notify: true
+                }
             },
             ready: function () {
+                this.users = JSON.parse(window.localStorage.getItem("users"))["users"];
                 var form = this.$.papercard
                     .querySelector('#make-comment')
                     .querySelector('#commentform');
                 form.addEventListener('iron-form-error', this._onCommentSentError.bind(this));
                 form.addEventListener('iron-form-response', this._onCommentSent.bind(this));
+            },
+            _getUsers: function () {
+                console.log("getting users");
+                console.log(JSON.parse(window.localStorage.getItem("users")));
+                return JSON.parse(window.localStorage.getItem("users"))["users"];
             },
 
             _toggleArrow: function (event) {
@@ -121,7 +147,7 @@
                 }
             },
             _assignIssue: function () {
-                console.log("issue assignment");
+                this.$.papercard.querySelector('#assign-users').toggle();
             },
             _storeItemLocally: function () {
                 window.localStorage.setItem("currentItem", JSON.stringify(this.item));

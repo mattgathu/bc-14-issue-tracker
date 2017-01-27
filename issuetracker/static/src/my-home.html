@@ -88,9 +88,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           this.listen(this.domHost.$$('#saleslabel'), 'tap', '_onTapSalesLabel');
           this.listen(this.domHost.$$('#successlabel'), 'tap', '_onTapSuccessLabel');
           this.listen(this.domHost.$$('#financelabel'), 'tap', '_onTapFinanceLabel');
+          this.listen(this.domHost.$$('#operationslabel'), 'tap', '_onTapOperationsLabel');
           this.listen(this.domHost.$$('#highprioritylabel'), 'tap', '_onTapHighPriorityLabel');
           this.listen(this.domHost.$$('#mediumprioritylabel'), 'tap', '_onTapMediumPriorityLabel');
           this.listen(this.domHost.$$('#lowprioritylabel'), 'tap', '_onTapLowPriorityLabel');
+
           window.setInterval(this._checkIfUpdated.bind(this), 1000);
       },
       _getListItems: function(items) {
@@ -171,6 +173,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   },
   _onTapSalesLabel: function () {
       this.set("searchString", "sales");
+  },
+  _onTapOperationsLabel: function () {
+      this.set("searchString", "operations");
   },
   _onTapLowPriorityLabel: function () {
       this.set("searchString", "lowpriority");

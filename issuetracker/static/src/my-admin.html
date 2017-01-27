@@ -107,7 +107,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       },
       ready: function () {
           this.issues = [];
+          this.users = [];
           this._fetchIssues(1);
+          this._fetchUsers();
           this.listen(this.domHost.$$('#searchinput'), 'keyup', '_onKeyUp');
           this.listen(this.domHost.$$('#alldepartmentslabel'), 'tap', '_onTapAllDepartmentsLabel');
           this.listen(this.domHost.$$('#productionlabel'), 'tap', '_onTapProductionLabel');
@@ -141,6 +143,24 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       _getListItems: function(items) {
         // Return placeholder items when the items haven't loaded yet.
         return items || [{},{},{},{},{},{},{},{},{},{}];
+    },
+    _fetchUsers: function () {
+        this._getResource({
+          url: '/api/users',
+          onLoad: function(e) {
+            var users = JSON.parse(e.target.responseText)["users"];
+            this.set('users', []);
+            for (var i = 0; i < users.length; i++) {
+                this.push('users', users[i]);
+            }
+            var jsonStr = JSON.stringify(JSON.parse(e.target.responseText));
+            window.localStorage.setItem("users",jsonStr);
+
+          },
+          onError: function(e) {
+            console.log("error fetching users");
+          }
+      }, 1);
     },
     _fetchIssues: function(attempts) {
       this._setFailure(false);
