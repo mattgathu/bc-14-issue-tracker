@@ -40,6 +40,12 @@ def logout_current_user():
     logout_user()
     return redirect(url_for('index'))
 
+@app.route('/api/users')
+def get_all_users():
+    users = [user.serialize() for user in models.User.query.all()]
+
+    return jsonify({"users": users})
+
 # ============================================================================
 # issues api
 # ============================================================================
