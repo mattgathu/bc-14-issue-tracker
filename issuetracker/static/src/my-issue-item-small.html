@@ -39,6 +39,10 @@
         .commentButton {
             background-color: white;
         }
+        .deleteDialog {
+            border-style: solid;
+            border-color: #F44336;
+        }
         </style>
         <paper-card id="papercard" class$="{{_getItemClass(item)}}" heading="[[item.summary]]">
           <div class="card-actions">
@@ -71,7 +75,7 @@
 
               <paper-toast id="toast" text="Issue Deleted!"></paper-toast>
           </div>
-          <paper-dialog id="deleteconfirmation">
+          <paper-dialog id="deleteconfirmation" class="deleteDialog">
               <h2>Confirm Delete</h2>
               <div class="buttons">
                 <paper-button dialog-dismiss>Cancel</paper-button>
