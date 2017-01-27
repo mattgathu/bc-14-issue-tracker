@@ -82,7 +82,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         font-weight: bold;
       }
       .lowPriorityIcon{
-          color: #E0E0E0;
+          color: #9E9E9E;
       }
       .mediumPriorityIcon {
         color: #ffbb33;
@@ -109,7 +109,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           <app-toolbar>
             <paper-icon-button icon="my-icons:arrow-back" on-click="_navigateBack" drawer-toggle></paper-icon-button>
             <paper-icon-button icon="my-icons:menu" on-click="_toggleDrawer" drawer-toggle></paper-icon-button>
-            <a href="/create"><paper-fab mini noink icon="my-icons:add" title="Create a new issue"></paper-fab></a>
+            <a href="/create"><paper-fab id="createPaperFab" mini noink icon="my-icons:add" title="Create a new issue"></paper-fab></a>
 
             <div class="logo" main-title>Issue Tracker</div>
              <paper-icon-button title="Log out" icon="my-icons:exit" on-tap="_logoutUser"></paper-icon-button>
