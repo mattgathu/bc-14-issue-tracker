@@ -1,8 +1,9 @@
 {
-  "name": "My App",
-  "short_name": "My App",
-  "start_url": "/?homescreen=1",
+  "name": "Issue Tracker",
+  "short_name": "Issue Tracker",
+  "start_url": "/",
   "display": "standalone",
+  "gcm_sender_id": "482941778795",
   "theme_color": "#3f51b5",
   "background_color": "#3f51b5",
   "icons": [
