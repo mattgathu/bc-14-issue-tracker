@@ -7,7 +7,8 @@ Desc      : flask views module
 # ============================================================================
 # necessary imports
 # ============================================================================
-from flask import request, jsonify, abort, make_response, render_template, redirect, url_for
+from flask import request, jsonify, abort, make_response, render_template
+from flask import redirect, url_for
 from flask_user import login_required
 from flask_user import current_user
 from flask_login import logout_user
@@ -169,7 +170,8 @@ def create_comment():
         abort(400)
     #=========================================================================
     # aggregate into a dictionary
-    #=========================================================================    if request.form:
+    #=========================================================================
+    if request.form:
         keys = ["issue_id", "text"]
         data_dict = {key: request.form.get(key) for key in keys if key in request.form}
     elif request.json:
@@ -196,6 +198,23 @@ def create_comment():
 def not_found(error):
     """404 error handler """
     return make_response(jsonify({'error': '{}'.format(error)}), 404)
+
+
+# ============================================================================
+# one signal js libraries
+# ============================================================================
+@app.route('/OneSignalSDKUpdaterWorker.js')
+def get_onesignal_updater():
+    return app.send_static_file('OneSignalSDKUpdaterWorker.js')
+
+@app.route('/OneSignalSDKWorker.js')
+def get_onesignal_worker():
+    return app.send_static_file('OneSignalSDKWorker.js')
+
+@app.route('/manifest.json')
+def get_app_manifest():
+    return app.send_static_file('manifest.json')
+
 # ============================================================================
 # EOF
 # ============================================================================
