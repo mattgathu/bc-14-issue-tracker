@@ -5,6 +5,7 @@
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="../bower_components/paper-toast/paper-toast.html">
+<link rel="import" href="../bower_components/paper-badge/paper-badge.html">
 <link rel="import" href="../bower_components/paper-input/paper-textarea.html">
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../bower_components/iron-collapse/iron-collapse.html">
@@ -23,6 +24,9 @@
         paper-card {
             width: 100%;
             margin-top: 10px;
+        }
+        paper-badge {
+            --paper-badge-background: #4285f4;
         }
         .lowpriority {
           background-color: #9E9E9E;
@@ -54,13 +58,18 @@
         <paper-card id="papercard" class$="{{_getItemClass(item)}}" heading="[[item.summary]]">
           <div class="card-actions">
               <paper-icon-button
+                id="comment-paper-button"
                 title="comment"
                 on-tap="_toggleComment"
                 icon="my-icons:comment">
               </paper-icon-button>
+              <template id="commentstemplate" is="dom-if" if="{{_itemHasComments(item)}}">
+                 <paper-badge for="comment-paper-button" label="{{item.comments.length}}"></paper-badge>
+              </template>
               <paper-icon-button on-tap="_openDeleteDialog" title="delete" icon="my-icons:delete"></paper-icon-button>
               <paper-icon-button on-tap="_storeItemLocally" title="edit" icon="my-icons:create"></paper-icon-button>
               <paper-icon-button on-tap="_assignIssue" title="assign" icon="my-icons:assignment-ind"></paper-icon-button>
+              <paper-icon-button on-tap="_assignIssue" title="close issue" icon="my-icons:lock-outline"></paper-icon-button>
               <a href="/edit" id="editviewlink"></a>
               <paper-icon-button
                 icon="my-icons:keyboard-arrow-up"
@@ -73,6 +82,12 @@
                   [[item.description]]
               </iron-collapse>
               <iron-collapse id="make-comment" style="width:100%;">
+                  <template is="dom-repeat" items="{{item.comments}}" as="comment">
+                     <paper-icon-item>
+                      <iron-icon icon="my-icons:face" item-icon></iron-icon>
+                     [[comment.text]]
+                  </paper-icon-item>
+                </template>
                   <form is="iron-form" method="post" action="/api/comments" id="commentform">
                       <input type="hidden" name="issue_id" value="[[item.id]]"></input>
                       <paper-textarea name="text" id="commentInput" on-keyup="_toggleSendCommentButton" label="write comment"></paper-textarea>
@@ -121,8 +136,6 @@
                 form.addEventListener('iron-form-response', this._onCommentSent.bind(this));
             },
             _getUsers: function () {
-                console.log("getting users");
-                console.log(JSON.parse(window.localStorage.getItem("users")));
                 return JSON.parse(window.localStorage.getItem("users"))["users"];
             },
 
@@ -143,8 +156,11 @@
                 } else if (item.priority == "medium") {
                     return "mediumpriority";
                 } else {
-                    return "lowpriority"
+                    return "lowpriority";
                 }
+            },
+            _itemHasComments: function (item) {
+                return item.comments.length > 0;
             },
             _assignIssue: function () {
                 this.$.papercard.querySelector('#assign-users').toggle();
@@ -213,10 +229,12 @@
               },
               _onCommentSent: function () {
                   this.$.toast.show({text:"Comment Added", duration: 3000});
-                  this.$.papercard
+                  var form = this.$.papercard
                       .querySelector('#make-comment')
-                      .querySelector('#commentform').reset();
-                  this.$.papercard.querySelector('#make-comment').toggle();
+                      .querySelector('#commentform');
+                  var commentObj = {'text': form.querySelector('#commentInput').value, 'issue_id': this.item.id};
+                  this.push('item.comments', commentObj);
+                  form.reset();
               },
               _onCommentSentError: function () {
                   this.$.toast.show({text:"Error Occurred", duration: 3000});

@@ -2,6 +2,7 @@
 <link rel="import" href="../bower_components/paper-card/paper-card.html">
 <link rel="import" href="../bower_components/paper-toast/paper-toast.html">
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-progress/paper-progress.html">
 <link rel="import" href="../bower_components/paper-input/paper-textarea.html">
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../bower_components/iron-icon/iron-icon.html">
@@ -37,7 +38,10 @@
         </style>
         <paper-toast id="toast" text="Comment Added!"></paper-toast>
         <paper-card id="papercard" class$="{{_getItemClass(item)}}" heading="[[item.summary]]">
-          <div class="card-content">[[item.description]] <p><paper-icon-button icon="my-icons:label"></paper-icon-button>[[item.department]]</p></div>
+          <div class="card-content">
+              [[item.description]]
+              <p><paper-icon-button icon="my-icons:label"></paper-icon-button>[[item.department]]</p>
+          </div>
           <div class="card-actions">
             <paper-icon-button
                 title="comment"

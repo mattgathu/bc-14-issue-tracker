@@ -37,6 +37,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             --app-grid-expandible-item-columns: 2;
             --app-grid-item-height: auto;
         }
+        .createfab {
+            margin-left: 50%;
+        }
 
         ul {
           padding: 0;
@@ -58,6 +61,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           data="{{data}}"
           failure="{{failure}}">
       </my-data>
+      <a href="/create">
+          <paper-fab
+            class="createfab"
+            id="createPaperFab" mini noink
+            icon="my-icons:add"
+            title="Create a new issue">
+        </paper-fab>
+    </a>
 
      <ul class="app-grid">
         <template is="dom-repeat" items="[[issues]]" as="issue" filter="{{_computeFilter(searchString)}}" initial-count="4">
@@ -82,7 +93,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       ready: function () {
           this.issues = [];
           this._fetchIssues(1);
-          this.listen(this.domHost.$$('#searchinput'), 'keyup', '_onKeyUp');
+        // this.listen(this.domHost.$$('#searchinput'), 'keyup', '_onKeyUp');
           this.listen(this.domHost.$$('#alldepartmentslabel'), 'tap', '_onTapAllDepartmentsLabel');
           this.listen(this.domHost.$$('#productionlabel'), 'tap', '_onTapProductionLabel');
           this.listen(this.domHost.$$('#saleslabel'), 'tap', '_onTapSalesLabel');
@@ -92,6 +103,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           this.listen(this.domHost.$$('#highprioritylabel'), 'tap', '_onTapHighPriorityLabel');
           this.listen(this.domHost.$$('#mediumprioritylabel'), 'tap', '_onTapMediumPriorityLabel');
           this.listen(this.domHost.$$('#lowprioritylabel'), 'tap', '_onTapLowPriorityLabel');
+
+          this.listen(this.domHost.$$('#searchbar'), 'keyup', '_onSearchSubmit');
 
           window.setInterval(this._checkIfUpdated.bind(this), 1000);
       },
@@ -158,6 +171,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   }},
   _onKeyUp: function (e) {
       this.set("searchString", e.target.value);
+  },
+  _onSearchSubmit: function (e) {
+      this.set("searchString", e.target.query)
   },
   _onTapProductionLabel: function (e) {
       this.set("searchString", "production");

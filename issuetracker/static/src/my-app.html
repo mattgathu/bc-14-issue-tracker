@@ -28,6 +28,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../bower_components/paper-menu-button/paper-menu-button.html">
 <link rel="import" href="../bower_components/paper-menu/paper-menu.html">
 <link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../bower_components/paper-search/paper-search-bar.html">
 <link rel="import" href="../bower_components/paper-fab/paper-fab.html">
 <link rel="import" href="my-icons.html">
 
@@ -60,8 +61,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           margin-bottom: 0px;
           min-height: 10px;
       }
+      paper-menu {
+          background-color: inherit;
+      }
 
       .logo {
+          width: 20%;
           text-align: center;
       }
 
@@ -91,7 +96,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       .highPriorityIcon {
         color: #ff4444;
       }
-
+      paper-search-bar {
+          width: 50%;
+          background-color: #90CAF9;
+      }
+      .menuItem {
+          margin-top: 10px;
+      }
 
     </style>
 
@@ -109,10 +120,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           <app-toolbar>
             <paper-icon-button icon="my-icons:arrow-back" on-click="_navigateBack" drawer-toggle></paper-icon-button>
             <paper-icon-button icon="my-icons:menu" on-click="_toggleDrawer" drawer-toggle></paper-icon-button>
-            <a href="/create"><paper-fab id="createPaperFab" mini noink icon="my-icons:add" title="Create a new issue"></paper-fab></a>
 
             <div class="logo" main-title>Issue Tracker</div>
-             <paper-icon-button title="Log out" icon="my-icons:exit" on-tap="_logoutUser"></paper-icon-button>
+            <paper-search-bar id="searchbar"
+                disable-filter-button
+                hide-filter-button>
+            </paper-search-bar>
+
+
+             <paper-icon-button title="Log out" icon="my-icons:exit" on-tap="_logoutUser" style="float:right;"></paper-icon-button>
           </app-toolbar>
         </app-header>
 
@@ -120,46 +136,46 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           <!-- Drawer content -->
           <app-drawer opened="{{drawerOpened}}" id="drawer">
             <app-toolbar>Menu</app-toolbar>
-            <paper-input id="searchinput" label="search">
-              <div prefix> <paper-icon-button icon="search"></paper-icon-button></div>
-            </paper-input>
+
             <br>
             <label>Departments</label>
-            <paper-icon-item id="alldepartmentslabel" active>
+            <paper-menu selected="0">
+            <paper-icon-item class="menuItem" id="alldepartmentslabel" active>
                 <iron-icon class="grayIcon" icon="label" item-icon></iron-icon>
                 <span>All</span>
             </paper-icon-item>
-            <paper-icon-item id="productionlabel">
+            <paper-icon-item class="menuItem" id="productionlabel">
                 <iron-icon class="grayIcon" icon="label" item-icon></iron-icon>
                 <span>Production</span>
             </paper-icon-item>
-            <paper-icon-item id="financelabel">
+            <paper-icon-item class="menuItem" id="financelabel">
                 <iron-icon class="grayIcon" icon="label" item-icon></iron-icon>
                 <span>Finance</span>
             </paper-icon-item>
-            <paper-icon-item id="saleslabel">
+            <paper-icon-item class="menuItem" id="saleslabel">
                 <iron-icon class="grayIcon" icon="label" item-icon></iron-icon>
                 <span>Sales</span>
             </paper-icon-item>
-            <paper-icon-item id="operationslabel">
+            <paper-icon-item class="menuItem" id="operationslabel">
                 <iron-icon class="grayIcon" icon="label" item-icon></iron-icon>
                 <span>Operations</span>
             </paper-icon-item>
-            <paper-icon-item id="successlabel">
+            <paper-icon-item class="menuItem" id="successlabel">
                 <iron-icon class="grayIcon" icon="label" item-icon></iron-icon>
                 <span>Success</span>
             </paper-icon-item>
+        </paper-menu>
             <br>
             <label>Priority Levels</label>
-            <paper-icon-item id="lowprioritylabel" active>
+            <paper-icon-item class="menuItem" id="lowprioritylabel" active>
                 <iron-icon class="lowPriorityIcon" icon="label" item-icon></iron-icon>
                 <span>Low</span>
             </paper-icon-item>
-            <paper-icon-item id="mediumprioritylabel">
+            <paper-icon-item class="menuItem" id="mediumprioritylabel">
                 <iron-icon class="mediumPriorityIcon" icon="label" item-icon></iron-icon>
                 <span>Medium</span>
             </paper-icon-item>
-            <paper-icon-item id="highprioritylabel">
+            <paper-icon-item class="menuItem" id="highprioritylabel">
                 <iron-icon class="highPriorityIcon" icon="label" item-icon></iron-icon>
                 <span>High</span>
             </paper-icon-item>

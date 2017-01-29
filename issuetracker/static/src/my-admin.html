@@ -14,7 +14,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../bower_components/paper-toolbar/paper-toolbar.html">
 <link rel="import" href="../bower_components/paper-badge/paper-badge.html">
+<link rel="import" href="../bower_components/paper-item/paper-item.html">
 <link rel="import" href="../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../bower_components/iron-list/iron-list.html">
 <link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout.html">
 <link rel="import" href="../bower_components/polymer-sortablejs/polymer-sortablejs.html"/>
 <link rel="import" href="shared-styles.html">
@@ -48,44 +50,92 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       .todo > paper-card {
           background-color: cyan;
       }
-
+      .flex-horizontal {
+        @apply(--layout-horizontal);
+      }
+      .flex-vertical {
+        @apply(--layout-vertical);
+      }
+      .flexchild {
+        @apply(--layout-flex);
+        background-color: white;
+        margin: 5px;
+        min-height: 60px;
+      }
+      .flexchild > paper-fab {
+          margin-top: auto;
+          margin-bottom: auto;
+          margin-left: 10px;
+      }
+      .flexchild > div {
+          margin-top: auto;
+          margin-bottom: auto;
+          margin-left: 10px;
+          @apply(--layout-flex);
+      }
+      my-issue-item-small {
+          margin: 5px;
+      }
+      .grey > paper-fab {
+          --paper-fab-background: #9E9E9E;
+      }
+      .orange > paper-fab {
+          --paper-fab-background: #ffbb33;
+      }
+      .green > paper-fab {
+          --paper-fab-background: #4CAF50;
+      }
     </style>
       <my-data
           data="{{data}}"
           failure="{{failure}}">
       </my-data>
-    <div class="container flex-self-align">
-      <div class="todo">
-          <paper-toolbar>
-              <span id="todocol"class="">To Do</span>
-          </paper-toolbar>
-          <sortable-js group="todo" id="todo" on-add="_onTodoColChange">
-              <template is="dom-repeat" items="[[issues]]" as="issue" filter="_isToDo" initial-count="4">
-                <my-issue-item-small item="[[issue]]"></my-issue-item-small>
+
+
+        <div class="container flex-horizontal">
+          <div class="flexchild flex-horizontal grey">
+              <paper-fab icon="my-icons:schedule" title="heart" mini></paper-fab>
+              <div>TO DO</div>
+          </div>
+          <div class="flexchild flex-horizontal orange">
+               <paper-fab icon="my-icons:update" title="heart" mini></paper-fab><div>IN PROGRESS</div>
+          </div>
+          <div class="flexchild flex-horizontal green">
+               <paper-fab icon="my-icons:check-circle" title="heart" mini></paper-fab>
+               <div>DONE</div>
+          </div>
+        </div>
+
+        <div class="container flex-horizontal">
+          <div class="flexchild flex-vertical">
+              <template is="dom-repeat" items="{{issues}}" as="issue" filter="{{_computeFilter(searchString)}}" initial-count="4">
+                <template is="dom-if" if="{{_isToDo(issue)}}">
+                  <my-issue-item-small item="[[issue]]"></my-issue-item-small>
+                </template>
+
               </template>
-          </sortable-js>
-      </div>
-      <div class="inprogress">
-          <paper-toolbar>
-              <span class="title">In Progress</span>
-          </paper-toolbar>
-          <sortable-js group="todo" id="progress" on-add="_onProgressColChange">
-              <template  is="dom-repeat" items="[[issues]]" as="issue" filter="_isInProgess" observe="in_progress in_progress" initial-count="4">
-                <my-issue-item-small item="[[issue]]"></my-issue-item-small>
+
+          </div>
+          <div class="flexchild flex-vertical">
+              <template is="dom-repeat" items="[[issues]]" as="issue" filter="{{_computeFilter(searchString)}}" initial-count="4">
+                  <template is="dom-if" if="{{_isInProgess(issue)}}">
+                      <my-issue-item-small item="[[issue]]"></my-issue-item-small>
+                  </template>
               </template>
-          </sortable-js>
-      </div>
-      <div class="done">
-          <paper-toolbar>
-              <span class="title">Done</span>
-          </paper-toolbar>
-          <sortable-js group="todo" id="done" on-add="_onDoneColChange">
-              <template is="dom-repeat" items="[[issues]]" as="issue" filter="_isDone" initial-count="4">
-                <my-issue-item-small item="[[issue]]"></my-issue-item-small>
+
+          </div>
+          <div class="flexchild flex-vertical">
+              <template is="dom-repeat" items="[[issues]]" as="issue" filter="{{_computeFilter(searchString)}}" initial-count="4">
+                 <template is="dom-if" if="{{_isDone(issue)}}">
+                      <my-issue-item-small item="[[issue]]"></my-issue-item-small>
+                </template>
               </template>
-          </sortable-js>
-      </div>
-    </div>
+
+          </div>
+        </div>
+
+
+
 
 
   </template>
@@ -99,6 +149,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             type: Boolean,
             notify: true,
             readOnly: true
+        },
+        issues: {
+            type: Array,
+            notify: true
         }
 
       },
@@ -110,12 +164,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           this.users = [];
           this._fetchIssues(1);
           this._fetchUsers();
-          this.listen(this.domHost.$$('#searchinput'), 'keyup', '_onKeyUp');
           this.listen(this.domHost.$$('#alldepartmentslabel'), 'tap', '_onTapAllDepartmentsLabel');
           this.listen(this.domHost.$$('#productionlabel'), 'tap', '_onTapProductionLabel');
           this.listen(this.domHost.$$('#saleslabel'), 'tap', '_onTapSalesLabel');
           this.listen(this.domHost.$$('#successlabel'), 'tap', '_onTapSuccessLabel');
           this.listen(this.domHost.$$('#financelabel'), 'tap', '_onTapFinanceLabel');
+          this.listen(this.domHost.$$('#operationslabel'), 'tap', '_onTapOperationsLabel');
+          this.listen(this.domHost.$$('#highprioritylabel'), 'tap', '_onTapHighPriorityLabel');
+          this.listen(this.domHost.$$('#mediumprioritylabel'), 'tap', '_onTapMediumPriorityLabel');
+          this.listen(this.domHost.$$('#lowprioritylabel'), 'tap', '_onTapLowPriorityLabel');
+          this.listen(this.domHost.$$('#searchbar'), 'keyup', '_onSearchSubmit');
           window.setInterval(this._checkIfUpdated.bind(this), 1000);
       },
 
@@ -138,6 +196,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               return issue.status == "open" && issue.in_progress == false;
           }
 
+      },
+      _getTodo: function (issues) {
+          var todo = issues.filter(this._isToDo);
+          return todo;
       },
 
       _getListItems: function(items) {
@@ -199,7 +261,20 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   _computeFilter: function (query) {
     if (!query) {
       return null;
-    } else {
+  } else if (query == "lowpriority") {
+      return function (issue) {
+          return issue.priority == "low";
+      };
+  } else if (query == "mediumpriority") {
+      return function (issue) {
+          return issue.priority == "medium";
+      };
+  } else if (query == "highpriority") {
+      return function (issue) {
+          return issue.priority == "high";
+      };
+
+  } else {
       query = query.toLowerCase();
       return function (issue) {
           var search_text = issue.summary + issue.description + issue.department;
@@ -301,6 +376,18 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   },
   _onTapSalesLabel: function () {
       this.set("searchString", "sales");
+  },
+  _onSearchSubmit: function (e) {
+      this.set("searchString", e.target.query)
+  },
+  _onTapLowPriorityLabel: function () {
+      this.set("searchString", "lowpriority");
+  },
+  _onTapMediumPriorityLabel: function () {
+      this.set("searchString", "mediumpriority");
+  },
+  _onTapHighPriorityLabel: function () {
+      this.set("searchString", "highpriority");
   },
 
    _allowDrop: function (ev) {

@@ -1,0 +1,162 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../bower_components/paper-menu/paper-menu.html">
+<link rel="import" href="../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-toggle-button/paper-toggle-button.html">
+<link rel="import" href="../bower_components/paper-input/paper-textarea.html">
+<link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../bower_components/paper-radio-button/paper-radio-button.html">
+<link rel="import" href="../bower_components/paper-radio-group/paper-radio-group.html">
+<link rel="import" href="../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../bower_components/iron-form/iron-form.html">
+<link rel="import" href="shared-styles.html">
+<link rel="import" href="my-data.html">
+<link rel="import" href="my-issue-item.html">
+<link rel="import" href="my-icons.html">
+
+<dom-module id="my-edit">
+  <template>
+    <style include="shared-styles">
+      :host {
+        display: block;
+        padding: 10px;
+      }
+      .output {
+        margin-top: 20px;
+        word-wrap: break-word;
+        @apply(--paper-font-common-code);
+      }
+      form > paper-button {
+        width: 45%;
+        margin-top: 20px;
+      }
+      form > paper-button:not([disabled]) {
+        background: var(--paper-light-blue-500);
+        color: white;
+      }
+      button {
+        margin-top: 20px;
+      }
+      paper-spinner {
+        width: 14px;
+        height: 14px;
+        margin-right: 20px;
+      }
+      paper-dropdown-menu {
+        display: block;
+      }
+      form {
+          max-height: 300px;
+          max-width: 300px;
+          margin-left: 200px;
+      }
+    </style>
+
+
+         <form is="iron-form" method="put" action="/api/issues/[[item.id]]" id="editissueform">
+           <paper-input id="summary" name="summary" label="Summary" value="[[item.summary]]" required></paper-input>
+           <input type="hidden" name="id" value="[[item.id]]"></input>
+           <br>
+           <paper-textarea name="description" label="Issue Description" value="[[item.description]]" required></paper-textarea>
+           <br>
+           <label>Priority:</label>
+           <paper-radio-group selected="[[item.priority]]">
+              <paper-radio-button name="low" value="low">Low</paper-radio-button>
+              <paper-radio-button name="medium" value="medium">Medium</paper-radio-button>
+              <paper-radio-button name="high" value="high">High</paper-radio-button>
+            </paper-radio-group>
+           <br>
+           <paper-dropdown-menu label="Department" name="department" required>
+             <paper-menu class="dropdown-content" selected="[[_getDepartmentIndex(item.department)]]">
+               <paper-item name="Finance" value="Finance">Finance</paper-item>
+               <paper-item name="Operations" value="Operations">Operations</paper-item>
+               <paper-item name="Success" value="Success">Success</paper-item>
+               <paper-item name="Sales" value="Sales">Sales</paper-item>
+               <paper-item name="Production" value="Production">Production</paper-item>
+             </paper-menu>
+           </paper-dropdown-menu>
+           <template is="dom-if" if="{{isAdmin}}">
+              <paper-toggle-button name="status" value="[[item.status]]" checked="[[_isIssueOpen]]">Is Open</paper-toggle-button>
+            </template>
+           <paper-button raised on-tap="_submit">Update</paper-button>
+           <paper-button raised onclick="_reset(event)">Reset</paper-button>
+           <div class="output"></div>
+         </form>
+         <paper-toast id="toast" text="Comment Added!"></paper-toast>
+
+  </template>
+
+  <script>
+    Polymer({
+      is: 'my-edit',
+      properties: {
+          item: Object,
+          value: function () {
+              return JSON.parse(window.localStorage.getItem("currentItem"));
+          },
+          isAdmin: {
+              type: Boolean,
+              value: false,
+              notify: true
+          }
+      },
+      ready: function () {
+          this._setIsAdmin();
+          this.set('item', JSON.parse(window.localStorage.getItem("currentItem")));
+          window.setInterval(this._updateItem.bind(this), 500);
+          this.$.editissueform
+            .addEventListener('iron-form-error', this._onFormSubmitError.bind(this));
+          this.$.editissueform
+            .addEventListener('iron-form-response', this._onFormSubmitResponse.bind(this));
+          this.$.editissueform
+             .addEventListener('iron-form-presubmit', this._changeFormMethodToPut.bind(this));
+      },
+      _isIssueOpen: function () {
+          return this.item.status == "open";
+      },
+      _setIsAdmin:function () {
+          var isAdmin = window.localStorage.getItem("isAdmin");
+          if (isAdmin == "true") {
+              this.set('isAdmin', true);
+          }
+      },
+      _submit: function (event) {
+          console.log(this.$.editissueform.serialize());
+          this.$.editissueform.submit();
+      },
+      _getDepartmentIndex: function (department) {
+          var departments = ["Finance", "Operations", "Success", "Sales", "Production"];
+          return departments.indexOf(department);
+      },
+      _updateItem: function () {
+          var currentItem = JSON.parse(window.localStorage.getItem("currentItem"));
+          if (JSON.stringify(this.item) != JSON.stringify(currentItem)) {
+              this.set('item', currentItem)
+          }
+      },
+      _onFormSubmitError: function () {
+          this.$.toast.show({text: "Error Occurred!!"});
+      },
+      _onFormSubmitResponse: function (e) {
+          console.log(e);
+          this.$.toast.show({text: "Issue Updated!"});
+          this.fire('updated');
+          window.localStorage.setItem("updated", "true");
+      },
+      _changeFormMethodToPut: function () {
+          this.$.editissueform.method = 'put';
+      }
+  });
+  </script>
+</dom-module>
