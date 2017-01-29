@@ -77,6 +77,13 @@ class Issue(db.Model):
                 "department", "in_progress", "status"]
         data_dict = {key: getattr(self, key) for key in keys}
 
+        # ====================================================================
+        # add comments
+        # ====================================================================
+        comments = [cmt.serialize() for
+                    cmt in Comment.query.filter_by(issue_id=self.id).all()]
+        data_dict["comments"] = comments
+
         return data_dict
 
     def save(self):
