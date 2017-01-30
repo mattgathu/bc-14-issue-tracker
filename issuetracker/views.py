@@ -7,6 +7,8 @@ Desc      : flask views module
 # ============================================================================
 # necessary imports
 # ============================================================================
+from functools import wraps
+
 from flask import request, jsonify, abort, make_response, render_template
 from flask import redirect, url_for
 from flask_user import login_required
@@ -15,6 +17,26 @@ from flask_login import logout_user
 
 from issuetracker import app, models
 
+
+# ============================================================================
+# custom view decorators
+# ============================================================================
+def api_login_required(func):
+    @wraps(func)
+    def decorated_func(*args, **kwargs):
+        if current_user.is_anonymous:
+            abort(401)
+        return func(*args, **kwargs)
+    return decorated_func
+
+
+def api_admin_login_required(func):
+    @wraps(func)
+    def decorated_func(*args, **kwargs):
+        if not current_user.is_admin:
+            abort(401)
+        return func(*args, **kwargs)
+    return decorated_func
 
 # ============================================================================
 # index view
@@ -51,6 +73,7 @@ def get_all_users():
 # issues api
 # ============================================================================
 @app.route('/api/issues', methods=['GET'])
+@api_login_required
 def get_issues():
     """fetch issues based on user"""
     issues = []
@@ -64,6 +87,7 @@ def get_issues():
 
 
 @app.route('/api/issues/<int:issue_id>', methods=['GET'])
+@api_login_required
 def get_issue(issue_id):
     """fetch issue of id issue_id """
     issue = models.Issue.query.get(issue_id)
@@ -72,6 +96,7 @@ def get_issue(issue_id):
     return jsonify({'issue': issue.serialize()})
 
 @app.route('/api/issues', methods=['POST'])
+@api_login_required
 def create_issue():
     """create a new issue """
     # ========================================================================
@@ -110,6 +135,7 @@ def create_issue():
 
 
 @app.route('/api/issues/<int:issue_id>', methods=['PUT'])
+@api_login_required
 def update_issue(issue_id):
     """update issue of id issue_id """
     issue = models.Issue.query.get(issue_id)
@@ -140,6 +166,7 @@ def update_issue(issue_id):
 
 
 @app.route('/api/issues/<int:issue_id>', methods=['DELETE'])
+@api_admin_login_required
 def delete_issue(issue_id):
     """delete issue of id issue_id """
     issue = models.Issue.query.get(issue_id)
@@ -155,6 +182,7 @@ def delete_issue(issue_id):
 # comments api
 # ============================================================================
 @app.route('/api/comments/<int:issue>', methods=['GET'])
+@api_login_required
 def get_comments(issue):
     """fetch all comments of an issue """
     comments = [comment.serialize() for comment in
@@ -164,6 +192,7 @@ def get_comments(issue):
 
 
 @app.route('/api/comments', methods=['POST'])
+@api_login_required
 def create_comment():
     """create a new commentInput """
     if not request.json and not request.form and not request.args:
@@ -192,8 +221,13 @@ def create_comment():
 
 
 # ============================================================================
-# error handler
+# error handlers
 # ============================================================================
+@app.errorhandler(401)
+def not_authorized(error):
+    """401 error handler """
+    return make_response(jsonify({'error': '{}'.format(error)}), 401)
+
 @app.errorhandler(404)
 def not_found(error):
     """404 error handler """
