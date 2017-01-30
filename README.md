@@ -1,4 +1,7 @@
 # Andela Boot Camp 14 Project: [Issue Tracker](https://mg-issue-tracker.herokuapp.com/)
+---
+[![Build
+Status](https://travis-ci.org/mattgathu/bc-14-issue-tracker.svg?branch=master)](https://travis-ci.org/mattgathu/bc-14-issue-tracker)
 
 Andela Boot Camp Cohort 14 Project.
 
